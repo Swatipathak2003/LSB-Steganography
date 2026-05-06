@@ -1,2 +1,0 @@
-File extension: .txt
-Data: hello, this file is encrypted.

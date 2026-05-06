@@ -1,7 +1,9 @@
 #include<stdio.h>
 #include<string.h>
+#include<stdlib.h>
 #include"header.h"
 char password[12]="hash123swati";
+char encryptedfile[20]="encrpyteddata";
 int readheight(FILE*);
 int readwidth(FILE*);
 unsigned int readbmpfilesize(FILE* );
@@ -15,7 +17,7 @@ void remainingdata(FILE* ,FILE*,unsigned int);
 
 int decodemagicstring(FILE*);
 int decodesize(FILE*);
-void decodeextension(FILE*,FILE*);
+char* decodeextension(FILE*);
 void decodedata(FILE*,FILE*,unsigned int);
 
 
@@ -23,8 +25,8 @@ void decodedata(FILE*,FILE*,unsigned int);
 void encrypt(){
     printf("INFO: Opening the required file\n");
 
-    FILE* fp1=fopen("sampleimage.bmp","rb");
-    FILE* fp2=fopen("msg.txt","rb");
+    FILE* fp1=fopen("Image.bmp","rb");
+    FILE* fp2=fopen("secretfile.txt","rb");
 
     printf("INFO: checking for the Image file capacity to store data.\n");
     int bmpsize=readbmpfilesize(fp1);
@@ -33,7 +35,7 @@ void encrypt(){
     int capacity=height*width*3;
     printf("INFO: Height = %d\n",height);
     printf("INFO: Width = %d\n",width);
-    printf("INFO: checking for the secret.txt file size.\n");
+    printf("INFO: checking for the secret file size.\n");
     unsigned int size=readsize(fp2);
     if(size == 0){
         printf("secret message file is empty!\n");
@@ -60,15 +62,15 @@ void encrypt(){
     encodemagicstring(fp1,fp2,fp3);
     printf("INFO: DONE.\n");
     
-    printf("INFO: Encoding secret.txt extension.\n");
+    printf("INFO: Encoding secret file extension.\n");
     encodeextension(fp1,fp2,fp3);
     printf("INFO: DONE.\n");
 
-    printf("INFO: Encoding secret.txt size.\n");
+    printf("INFO: Encoding secret file size.\n");
     encodesize(fp1,fp3,size);
     printf("INFO: DONE.\n");
 
-    printf("INFO: Encoding secret data\n");
+    printf("INFO: Encoding secret file data\n");
     encodedata(fp1,fp2,fp3);
     printf("INFO: DONE.\n");
 
@@ -138,7 +140,21 @@ void encodemagicstring(FILE* fp1,FILE* fp2,FILE* fp3){
 }
 
 void encodeextension(FILE* fp1,FILE* fp2,FILE* fp3){
-    char str[4]=".txt";
+    char* str=malloc(5*sizeof(char));
+    fseek(fp2,0,SEEK_SET);
+    fread(str,1,5,fp2);
+    if(strstr(str,"PDF")!=NULL){
+        str=".pdf";
+    }
+    else if(strstr(str,"BM")!=NULL){
+        str=".bmp";
+    }
+    else if(strstr(str,"ID3")!=NULL){
+        str=".mp3";
+    }
+    else{
+        str=".txt";
+    }
     unsigned char ch;
    encodesize(fp1,fp3,strlen(str));
    int len=strlen(str);
@@ -198,7 +214,7 @@ void decrypt(){
     printf("INFO: Opening required file\n");
 
     FILE* fp1=fopen("encryptedimage.bmp","rb");
-    FILE* fp2=fopen("decode_msg.txt","wb");
+    // FILE* fp2=fopen("decode_msg.txt","wb");
     printf("INFO: Opened file successfully\n");
 
     printf("INFO: Decoding magic string\n");
@@ -206,13 +222,20 @@ void decrypt(){
     if(v){
         printf("Not Encrypted file\n");
         fclose(fp1);
-        fclose(fp2);
+        // fclose(fp2);
         return ;
     }
     printf("INFO: Done\n");
 
     printf("INFO: Decoding secret file extension\n");
-    decodeextension(fp1,fp2);
+    char* extension;
+    static int flag=0;
+    extension=decodeextension(fp1);
+    if(!flag){
+        strcat(encryptedfile,extension);
+        flag=1;
+    }
+    FILE* fp2=fopen(encryptedfile,"wb");
     printf("INFO: DONE\n");
 
     printf("INFO: Decoding the secret data size\n");
@@ -223,6 +246,7 @@ void decrypt(){
     decodedata(fp1,fp2,size);
     printf("INFO:DONE\n");
     printf("INFO: Decryption was successful...\n");
+    free(extension);
     fclose(fp1);
     fclose(fp2);
 
@@ -260,9 +284,9 @@ int decodesize(FILE* fp1){
     return size;
 }
 
-void decodeextension(FILE* fp1,FILE* fp2){
+char* decodeextension(FILE* fp1){
     int size=decodesize(fp1);
-    char ch[size];
+    char* ch=calloc((size+1),sizeof(char));
     for(int i=0;i<size;i++){
         ch[i]=0;
         for(int j=7;j>=0;j--){
@@ -270,15 +294,13 @@ void decodeextension(FILE* fp1,FILE* fp2){
             fread(&c,1,1,fp1);
             char extract_bit=c&1;
             ch[i]=ch[i]|(extract_bit<<j);
-        }
+        }   
     }
-    fprintf(fp2,"File extension: ");
-    fwrite(ch,size,1,fp2);
-    fprintf(fp2,"\n");
+    return ch;
 }
 
 void decodedata(FILE* fp1,FILE* fp2,unsigned int size){
-    fprintf(fp2,"Data: ");
+    // fprintf(fp2,"Data: ");
     for(int i=0;i<size;i++){
         char ch=0;
         for(int j=7;j>=0;j--){

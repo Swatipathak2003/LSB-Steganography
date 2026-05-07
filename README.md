@@ -65,7 +65,7 @@ lsb-steganography/
 ### Compile
 
 ```bash
-gcc src/main.c src/function.c -o stego
+gcc main.c function.c  -o stego
 ```
 
 ### Run

@@ -1,7 +1,7 @@
 #include<stdio.h>
 #include"header.h"
 
-int main(){
+int main(int argc, char* argv[]){
     int s;
     printf("WELCOME\n");
     do{
@@ -13,7 +13,7 @@ int main(){
         scanf("%d",&s);
         switch(s){
             case 1 :
-                encrypt();
+                encrypt(argv[1],argv[2]);
                 break;
             case 2:
                 decrypt();

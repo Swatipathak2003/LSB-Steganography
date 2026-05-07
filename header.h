@@ -2,7 +2,7 @@
 #define header
 #include<stdio.h>
 
-    void encrypt();
+    void encrypt(char*,char*);
     void decrypt();
 
 #endif

@@ -6,7 +6,7 @@
 
 ## 📌 Overview
 
-This project implements **LSB (Least Significant Bit) Steganography** in C to hide and retrieve data inside a BMP image. It supports embedding and extracting multiple file types — text, PDF, MP3, and BMP — through a simple menu-driven interface.
+This project implements **LSB (Least Significant Bit) Steganography** in C to hide and retrieve data inside a BMP image. It supports embedding and extracting multiple file types — text, PDF, MP3, MP4 and BMP — through a simple menu-driven interface.
 
 ---
 
@@ -41,8 +41,8 @@ lsb-steganography/
 
 ### 🔐 Encryption
 
-1. Reads the secret input file into memory
-2. Converts file data to binary (bit by bit)
+1. Opens the Image(.bmp) and secret data(any file) file passed by user in CLA
+2. Embeds the secret file extension, size, and complete data (bit by bit)
 3. Embeds each bit into the **least significant bit** of individual bytes in the BMP pixel data
 4. Writes a new encoded BMP image to disk — visually identical to the original
 
@@ -71,7 +71,7 @@ gcc src/main.c src/function.c -o stego
 ### Run
 
 ```bash
-./stego
+./stego  Image.bmp Secretfile
 ```
 
 ### Menu Options
@@ -104,7 +104,7 @@ gcc src/main.c src/function.c -o stego
 | PDF   | `.pdf`    | Binary-safe encoding      |
 | Audio | `.mp3`    | Binary-safe encoding      |
 | Image | `.bmp`    | Nested BMP support        |
-
+| Image | `.mp4`    | Binary-safe encoding      |
 ---
 
 ## 🛠️ Technologies Used

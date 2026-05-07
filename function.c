@@ -1,16 +1,17 @@
 #include<stdio.h>
 #include<string.h>
 #include<stdlib.h>
+#include<unistd.h>
 #include"header.h"
 char password[12]="hash123swati";
-char encryptedfile[20]="encrpyteddata";
+char encryptedfile[20]="encrypteddata";
 int readheight(FILE*);
 int readwidth(FILE*);
 unsigned int readbmpfilesize(FILE* );
 unsigned int readsize(FILE*);
 void copyheader(FILE*,FILE*);
 void encodemagicstring(FILE*,FILE*,FILE*);
-void encodeextension(FILE* fp1,FILE* fp2,FILE* fp3);
+void encodeextension(FILE*,FILE*,char*);
 void encodesize(FILE* fp1,FILE*fp3,unsigned int size);
 void encodedata(FILE*,FILE*,FILE*);
 void remainingdata(FILE* ,FILE*,unsigned int);
@@ -22,12 +23,11 @@ void decodedata(FILE*,FILE*,unsigned int);
 
 
 
-void encrypt(){
+void encrypt(char* f1,char* f2){
     printf("INFO: Opening the required file\n");
 
-    FILE* fp1=fopen("Image.bmp","rb");
-    FILE* fp2=fopen("secretfile.txt","rb");
-
+    FILE* fp1=fopen(f1,"rb");
+    FILE* fp2=fopen(f2,"rb");
     printf("INFO: checking for the Image file capacity to store data.\n");
     int bmpsize=readbmpfilesize(fp1);
     int height=readheight(fp1);
@@ -35,17 +35,17 @@ void encrypt(){
     int capacity=height*width*3;
     printf("INFO: Height = %d\n",height);
     printf("INFO: Width = %d\n",width);
-    printf("INFO: checking for the secret file size.\n");
+    printf("INFO: checking for the %s file size.\n",f2);
     unsigned int size=readsize(fp2);
     if(size == 0){
-        printf("secret message file is empty!\n");
+        printf("%s file is empty!\n",f2);
         printf("Encrption not possible!\n");
         fclose(fp1);
         fclose(fp2);
         return; 
     }
     if(size>(capacity-strlen(password))){
-        printf("INFO: secret data file size is larger than capacity of image!\n");
+        printf("INFO: %s file size is larger than capacity of image!\n",f2);
         printf("Encryption Not Possible.\n");
         return;
     }
@@ -63,7 +63,7 @@ void encrypt(){
     printf("INFO: DONE.\n");
     
     printf("INFO: Encoding secret file extension.\n");
-    encodeextension(fp1,fp2,fp3);
+    encodeextension(fp1,fp3,f2);
     printf("INFO: DONE.\n");
 
     printf("INFO: Encoding secret file size.\n");
@@ -139,30 +139,16 @@ void encodemagicstring(FILE* fp1,FILE* fp2,FILE* fp3){
     }   
 }
 
-void encodeextension(FILE* fp1,FILE* fp2,FILE* fp3){
-    char* str=malloc(5*sizeof(char));
-    fseek(fp2,0,SEEK_SET);
-    fread(str,1,5,fp2);
-    if(strstr(str,"PDF")!=NULL){
-        str=".pdf";
-    }
-    else if(strstr(str,"BM")!=NULL){
-        str=".bmp";
-    }
-    else if(strstr(str,"ID3")!=NULL){
-        str=".mp3";
-    }
-    else{
-        str=".txt";
-    }
+void encodeextension(FILE* fp1,FILE* fp3,char* f2){
+    char* ext=strchr(f2,'.');
     unsigned char ch;
-   encodesize(fp1,fp3,strlen(str));
-   int len=strlen(str);
+   encodesize(fp1,fp3,strlen(ext));
+   int len=strlen(ext);
     int k=0;
     while(k<len){
         for(int i=7;i>=0;i--){
             fread(&ch,1,1,fp1);
-            unsigned char mask=(str[k]>>i)&1;
+            unsigned char mask=(ext[k]>>i)&1;
             ch=(ch&(~(1)))|mask;
             fwrite(&ch,1,1,fp3);
         }
